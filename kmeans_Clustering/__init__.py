@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utils.distances import euclidean_distance, manhattan_distance, cosine_distance
 
 class KmeansClustering:
     
-    def __init__(self, k=3, distance=None):
+    def __init__(self, k=3, distance="Euclidean"):
         self.k = k
         self.distance = distance
         self.centroids = None
@@ -14,7 +15,12 @@ class KmeansClustering:
         for _ in range(max_iter):
             y = []
             for data_point in Data:
-                distances = self.distance(data_point, self.centroids)
+                if self.distance == "Euclidean":
+                    distances = euclidean_distance(data_point, self.centroids)
+                elif self.distance == "Manhattan":
+                    distances = manhattan_distance(data_point, self.centroids)
+                elif self.distance == "Cosine":
+                    distances = cosine_distance(data_point, self.centroids)
                 cluster_num = np.argmin(distances)
                 y.append(cluster_num)
             y = np.array(y)

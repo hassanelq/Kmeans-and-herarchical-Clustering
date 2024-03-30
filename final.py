@@ -1,9 +1,6 @@
 
 import streamlit as st
 from datetime import datetime
-import matplotlib.pyplot as plt
-
-import kmeans_Clustering as Kmeans
 
 # headings
 month = datetime.now().month

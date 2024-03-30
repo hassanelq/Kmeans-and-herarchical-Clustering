@@ -1,12 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 from kmeans_Clustering import KmeansClustering as Kmeans
 from hierarchical_Clustering import hierarchicalClustering
-from distances import euclidean_distance, manhattan_distance, cosine_distance
-
 
 st.title('Data Analysis App')
 
@@ -66,15 +63,7 @@ if not st.session_state.data.empty:
         n_clusters = st.number_input("Number of clusters", min_value=2, value=3, step=1, key='kmeans_clusters')
         
         # User selects the distance metric
-        distance_metric = st.selectbox("Select distance metric:", ('Euclidean', 'Manhattan', 'Cosine'), key='distance_metric')
-        
-        # Map user selection to actual distance function
-        distance_functions = {
-            'Euclidean': euclidean_distance,
-            'Manhattan': manhattan_distance,
-            'Cosine': cosine_distance
-        }
-        selected_distance_function = distance_functions[distance_metric]
+        selected_distance = st.selectbox("Select distance metric:", ('Euclidean', 'Manhattan', 'Cosine'), key='distance_metric')
         
         if st.button('Run K-Means', key='run_kmeans'):
             # Convert all columns of the DataFrame to numeric, coercing errors to NaN
@@ -85,7 +74,7 @@ if not st.session_state.data.empty:
                 st.error("The dataset must contain at least two numeric columns for clustering.")
             else:
                 # Proceed with clustering using numeric_data
-                kmeans = Kmeans(k=n_clusters, distance=selected_distance_function)
+                kmeans = Kmeans(k=n_clusters, distance=selected_distance)
                 labels = kmeans.fit(numeric_data.values)  # Use values for clustering
                 st.session_state.data.loc[numeric_data.index, 'Cluster'] = labels  # Assign labels to the original data
                 
@@ -107,12 +96,12 @@ if not st.session_state.data.empty:
             else:
                 # Initialize and perform hierarchical clustering
                 hierarchical_clustering = hierarchicalClustering(n_clusters=n_clusters_hier, linkage='ward')
-                labels = hierarchical_clustering.fit_predict(numeric_data.values)  # Ensure to pass a NumPy array
+                labels = hierarchical_clustering.fit_predict(numeric_data.values)
                 
                 # Plot dendrogram
                 fig_dendrogram = hierarchical_clustering.plot_dendrogram()
                 st.pyplot(fig_dendrogram)
                 
                 # Plot clustered data points
-                fig_clusters = hierarchical_clustering.plot_clusters(numeric_data.values)  # Pass NumPy array
+                fig_clusters = hierarchical_clustering.plot_clusters(numeric_data.values)
                 st.pyplot(fig_clusters)
