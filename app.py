@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from kmeans import KmeansClustering
+
+from kmeans_Clustering import KmeansClustering as Kmeans
+from hierarchical_Clustering import hierarchicalClustering
 from distances import euclidean_distance, manhattan_distance, cosine_distance
-from sklearn.cluster import AgglomerativeClustering
-from scipy.cluster.hierarchy import dendrogram, linkage
 
 
 st.title('Data Analysis App')
@@ -85,7 +85,7 @@ if not st.session_state.data.empty:
                 st.error("The dataset must contain at least two numeric columns for clustering.")
             else:
                 # Proceed with clustering using numeric_data
-                kmeans = KmeansClustering(k=n_clusters, distance=selected_distance_function)
+                kmeans = Kmeans(k=n_clusters, distance=selected_distance_function)
                 labels = kmeans.fit(numeric_data.values)  # Use values for clustering
                 st.session_state.data.loc[numeric_data.index, 'Cluster'] = labels  # Assign labels to the original data
                 
@@ -95,30 +95,24 @@ if not st.session_state.data.empty:
 
             
     elif method == 'Hierarchical Clustering':
-        # User defines the number of clusters for cutting the dendrogram
         n_clusters_hier = st.number_input("Number of clusters (for dendrogram cut)", min_value=2, value=3, step=1, key='hier_clusters')
-        if st.button('Run Hierarchical Clustering', key='run_hierarchical'):
-            # Perform Hierarchical Clustering and display dendrogram
-            linked = linkage(st.session_state.data, method='ward')
-            plt.figure(figsize=(10, 7))
-            dendrogram(linked, orientation='top', distance_sort='descending', show_leaf_counts=True)
-            plt.title('Hierarchical Clustering Dendrogram')
-            plt.xlabel('Sample Index')
-            plt.ylabel('Distance')
-            st.pyplot(plt)
-            plt.close()  # Clear the plot to avoid conflicts in subsequent plots
-
-            # If a specific number of clusters was chosen, use AgglomerativeClustering to assign cluster labels
-            if n_clusters_hier:
-                model = AgglomerativeClustering(n_clusters=n_clusters_hier, linkage='ward')
-                labels = model.fit_predict(st.session_state.data)
-                st.session_state.data['Cluster'] = labels
-
-                # Plot the clustered data points
-                fig, ax = plt.subplots()
-                scatter = ax.scatter(st.session_state.data.iloc[:, 0], st.session_state.data.iloc[:, 1], c=labels, cmap='viridis', label='Data Points')
-                plt.title('Hierarchical Clustering Results')
-                plt.xlabel('Feature 1')
-                plt.ylabel('Feature 2')
-                ax.legend()
-                st.pyplot(fig)
+        
+        if st.button('Run Hierarchical Clustering', key='Run_HierarchicalClustering'):
+            # Ensure data is numeric and drop NaN values
+            numeric_data = st.session_state.data.apply(pd.to_numeric, errors='coerce').dropna()
+            
+            # Check if numeric_data is empty or if it doesn't contain enough columns
+            if numeric_data.empty or numeric_data.shape[1] < 2:
+                st.error("The dataset must contain at least two numeric columns for clustering.")
+            else:
+                # Initialize and perform hierarchical clustering
+                hierarchical_clustering = hierarchicalClustering(n_clusters=n_clusters_hier, linkage='ward')
+                labels = hierarchical_clustering.fit_predict(numeric_data.values)  # Ensure to pass a NumPy array
+                
+                # Plot dendrogram
+                fig_dendrogram = hierarchical_clustering.plot_dendrogram()
+                st.pyplot(fig_dendrogram)
+                
+                # Plot clustered data points
+                fig_clusters = hierarchical_clustering.plot_clusters(numeric_data.values)  # Pass NumPy array
+                st.pyplot(fig_clusters)
