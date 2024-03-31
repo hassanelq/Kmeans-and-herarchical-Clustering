@@ -22,9 +22,9 @@ class hierarchicalClustering:
         ax.set_ylabel('Distance')
         return fig
     
-    def plot_clusters(self, Data):
+    def plot_clusters(self, Data, labels):
         fig, ax = plt.subplots()
-        scatter = ax.scatter(Data[:, 0], Data[:, 1], c=self.labels, cmap='viridis', label='Data Points')
+        scatter = ax.scatter(Data[:, 0], Data[:, 1], c=labels, cmap='viridis', label='Data Points')
         ax.set_title('Hierarchical Clustering Results')
         ax.set_xlabel('Feature 1')
         ax.set_ylabel('Feature 2')
