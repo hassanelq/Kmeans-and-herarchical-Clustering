@@ -1,20 +1,5 @@
 
 import streamlit as st
-from datetime import datetime
-
-# headings
-month = datetime.now().month
-title = "options-2-trees"
-if 1 <= month <= 5:
-    st.title(title + " 🌳🌳")
-elif 5 < month <= 8:
-    st.title(title + " 🌴🌴")
-elif 8 < month <= 11:
-    st.title(title + " 🌲🌲")
-else:
-    st.title(title + " 🎄🎄")
-st.write("by [Tony](https://www.linkedin.com/in/tony-c-8b592b162/)")
-st.sidebar.title("Parameters")
 
 # user inputs on sidebar
 S = st.sidebar.slider('Stock Price (S)', value=500, 

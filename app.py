@@ -2,11 +2,50 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from kmeans_Clustering import KmeansClustering as Kmeans
+from kmeans_Clustering import KmeansClustering
 from hierarchical_Clustering import hierarchicalClustering
 
-st.title('Data Analysis App')
 
+def run_kmeans_clustering(data):
+    st.sidebar.title("Parameters")
+    K = st.sidebar.slider('Number of clusters', value=3, min_value=2, max_value=50, step=1, key='kmeans_K')
+    distance = st.sidebar.selectbox('Distance metric', ('Euclidean', 'Manhattan', 'Cosine'), key='kmeans_distance')
+    
+    if data.empty or data.shape[1] < 2:
+        st.error("The dataset must contain at least two numeric columns for clustering.")
+        return
+    
+    kmeans = KmeansClustering(k=K, distance=distance)
+    labels = kmeans.fit(data.values)
+    fig = kmeans.plot_clusters(data.values, labels)
+    st.pyplot(fig)
+
+def run_hierarchical_clustering(data):
+    st.sidebar.title("Parameters")
+    K = st.sidebar.slider('Number of clusters', value=3, min_value=2, max_value=50, step=1, key='hier_K')
+    
+    if data.empty or data.shape[1] < 2:
+        st.error("The dataset must contain at least two numeric columns for clustering.")
+        return
+    
+    hierarchical_clustering = hierarchicalClustering(n_clusters=K, linkage='ward')
+    labels = hierarchical_clustering.fit_predict(data.values)
+    
+    # Plot dendrogram
+    fig_dendrogram = hierarchical_clustering.plot_dendrogram()
+    st.pyplot(fig_dendrogram)
+    
+    # Plot clustered data points
+    fig_clusters = hierarchical_clustering.plot_clusters(data.values, labels)
+    st.pyplot(fig_clusters)
+
+
+st.title('kmeans clustering and hierarchical clustering visualization')
+st.write("by [Hassan EL QADI](https://www.linkedin.com/in/el-qadi/)")
+
+# data input
+
+st.header("1. Presenting the Data")
 # Let the user choose the method of data input - either by uploading a file or manual input
 data_input_method = st.radio("Choose how to input data:", ('Upload a file', 'Manual input'))
 
@@ -22,7 +61,7 @@ if data_input_method == 'Upload a file':
 
 # Manual input option
 elif data_input_method == 'Manual input':
-    st.write("### Step 1: Define Columns")
+    st.write("#### Step 1: Define Columns")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -34,7 +73,7 @@ elif data_input_method == 'Manual input':
                 column_names.append(column_name)
 
     with col2:
-        st.write("### Step 2: Generate Random Data")
+        st.write("#### Step 2: Generate Random Data")
         st.write("Specify the number of rows and value range for random data generation.")
         num_rows = st.number_input("Number of rows to generate", min_value=1, value=5, step=1)
         min_val = st.number_input("Minimum value", value=0)
@@ -47,61 +86,20 @@ elif data_input_method == 'Manual input':
 
     # Allow user to directly edit the DataFrame if columns have been defined
     if column_names:
-        st.write("### Step 3: Edit Data (Optional)")
+        st.write("#### Step 3: Edit Data (Optional)")
         st.session_state.data = st.data_editor(st.session_state.data, num_rows="dynamic")
 
 # Display the data to be analyzed
 if not st.session_state.data.empty:
-    st.write("### Data Preview:")
+    st.write("#### Data Preview:")
     st.write(st.session_state.data)
     
-    # Let the user choose the clustering method: K-Means or Hierarchical
-    method = st.radio("Choose a clustering method:", ('K-Means Clustering', 'Hierarchical Clustering'))
+    method = st.radio("Choose a clustering method:", ('K-Means Clustering', 'Hierarchical Clustering'), key='clustering_method')
+
+    # Convert all columns of the DataFrame to numeric, coercing errors to NaN, and drop rows with NaN values
+    numeric_data = st.session_state.data.apply(pd.to_numeric, errors='coerce').dropna()
 
     if method == 'K-Means Clustering':
-        # User defines the number of clusters for K-Means
-        n_clusters = st.number_input("Number of clusters", min_value=2, value=3, step=1, key='kmeans_clusters')
-        
-        # User selects the distance metric
-        selected_distance = st.selectbox("Select distance metric:", ('Euclidean', 'Manhattan', 'Cosine'), key='distance_metric')
-        
-        if st.button('Run K-Means', key='run_kmeans'):
-            # Convert all columns of the DataFrame to numeric, coercing errors to NaN
-            numeric_data = st.session_state.data.apply(pd.to_numeric, errors='coerce').dropna()
-
-            # Ensure the DataFrame has enough numeric columns
-            if numeric_data.empty or numeric_data.shape[1] < 2:
-                st.error("The dataset must contain at least two numeric columns for clustering.")
-            else:
-                # Proceed with clustering using numeric_data
-                kmeans = Kmeans(k=n_clusters, distance=selected_distance)
-                labels = kmeans.fit(numeric_data.values)  # Use values for clustering
-                st.session_state.data.loc[numeric_data.index, 'Cluster'] = labels  # Assign labels to the original data
-                
-                # Visualization
-                fig = kmeans.plot_clusters(numeric_data.values, labels)
-                st.pyplot(fig)
-
-            
+        run_kmeans_clustering(numeric_data)
     elif method == 'Hierarchical Clustering':
-        n_clusters_hier = st.number_input("Number of clusters (for dendrogram cut)", min_value=2, value=3, step=1, key='hier_clusters')
-        
-        if st.button('Run Hierarchical Clustering', key='Run_HierarchicalClustering'):
-            # Ensure data is numeric and drop NaN values
-            numeric_data = st.session_state.data.apply(pd.to_numeric, errors='coerce').dropna()
-            
-            # Check if numeric_data is empty or if it doesn't contain enough columns
-            if numeric_data.empty or numeric_data.shape[1] < 2:
-                st.error("The dataset must contain at least two numeric columns for clustering.")
-            else:
-                # Initialize and perform hierarchical clustering
-                hierarchical_clustering = hierarchicalClustering(n_clusters=n_clusters_hier, linkage='ward')
-                labels = hierarchical_clustering.fit_predict(numeric_data.values)
-                
-                # Plot dendrogram
-                fig_dendrogram = hierarchical_clustering.plot_dendrogram()
-                st.pyplot(fig_dendrogram)
-                
-                # Plot clustered data points
-                fig_clusters = hierarchical_clustering.plot_clusters(numeric_data.values)
-                st.pyplot(fig_clusters)
+        run_hierarchical_clustering(numeric_data)
