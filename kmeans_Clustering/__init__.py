@@ -50,3 +50,31 @@ class KmeansClustering:
         plt.legend()
 
         return fig
+    
+    def within_cluster_sum_of_squares(self):
+        wcss = 0
+        for i, cluster in enumerate(self.clusters):
+            wcss += np.sum((cluster - self.centroids[i]) ** 2)
+        return wcss
+    
+    @staticmethod
+    def calculate_wcss(data, k_range):
+        # Adjusted to use KmeansClustering
+        wcss_values = []
+        for k in k_range:
+            kmeans = KmeansClustering(k=k)
+            kmeans.fit(data)
+            wcss = kmeans.within_cluster_sum_of_squares()
+            wcss_values.append(wcss)
+        return wcss_values
+
+    @staticmethod
+    def plot_elbow_curve(k_range, wcss_values):
+        fig = plt.figure(figsize=(8, 5))
+        plt.plot(k_range, wcss_values, 'bo-', markersize=8, lw=2)
+        plt.title('Elbow Method For Optimal k')
+        plt.xlabel('Number of clusters (k)')
+        plt.ylabel('Within-Cluster Sum of Squares (WCSS)')
+        plt.grid(True)
+        return fig
+        
