@@ -21,11 +21,11 @@ def run_kmeans_clustering(data, n_clusters, distance_metric):
     fig = kmeans.plot_clusters(data.values, labels)
     st.pyplot(fig)
 
-def run_hierarchical_clustering(data, n_clusters_hier):
+def run_hierarchical_clustering(data, n_clusters_hier,linkage):
     if data.shape[1] < 2:
         st.error("The dataset must contain at least two numeric columns for clustering.")
         return
-    hierarchical_clustering = hierarchicalClustering(n_clusters=n_clusters_hier, linkage='ward')
+    hierarchical_clustering = hierarchicalClustering(n_clusters=n_clusters_hier, linkage=linkage)
     labels = hierarchical_clustering.fit_predict(data.values)
     fig_dendrogram = hierarchical_clustering.plot_dendrogram()
     st.pyplot(fig_dendrogram)
@@ -51,24 +51,23 @@ method = st.sidebar.radio("Choose a clustering method:", ('K-Means Clustering', 
 
 n_clusters = None
 distance_metric = None
-use_optimal_k = st.sidebar.checkbox("Use optimal K from Elbow Method", True)
-
-if 'optimal_k' not in st.session_state:
-    st.session_state.optimal_k = None
 
 if method == 'K-Means Clustering':
     distance_metric = st.sidebar.selectbox('Distance metric', ('Euclidean', 'Manhattan', 'Cosine'), key='kmeans_distance_metric')
-    if not use_optimal_k:
-        n_clusters = st.sidebar.slider('Number of clusters', value=3, min_value=2, max_value=15, step=1, key='kmeans_n_clusters')
-    elif st.session_state.optimal_k:
+    use_optimal_k = st.sidebar.checkbox("Use optimal K from Elbow Method", True, key='use_optimal_k')
+    if use_optimal_k:
+        if 'optimal_k' not in st.session_state:
+            st.session_state.optimal_k = 3
         n_clusters = st.session_state.optimal_k
     else:
-        n_clusters = 3
+        n_clusters = st.sidebar.slider('Number of clusters', value=3, min_value=2, max_value=10, step=1, key='kmeans_n_clusters')
+
 
 n_clusters_hier = None
 if method == 'Hierarchical Clustering':
-    n_clusters_hier = st.sidebar.slider('Number of clusters', value=3, min_value=2, max_value=50, step=1, key='hier_n_clusters')
-
+    linkage = st.sidebar.selectbox('Linkage method', ('ward', 'single', 'complete', 'average'), key='hier_linkage')
+    n_clusters_hier = st.sidebar.slider('Number of clusters', value=3, min_value=2, max_value=10, step=1, key='hier_n_clusters')
+    
 # Data input section
 st.write("### Data Input:")
 data_input_method = st.radio("Choose how to input data:", ('Upload a file', 'Manual input', 'Random dataset'), key='data_input_method')
@@ -105,4 +104,4 @@ if 'data' in st.session_state and not st.session_state.data.empty:
         run_kmeans_clustering(numeric_data, n_clusters, distance_metric)
             
     elif method == 'Hierarchical Clustering' and n_clusters_hier:
-        run_hierarchical_clustering(numeric_data, n_clusters_hier)
+        run_hierarchical_clustering(numeric_data, n_clusters_hier ,linkage)
