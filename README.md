@@ -61,10 +61,6 @@ After uploading or generating data:
 - **elbow_Method.py**: Contains the ElbowMethod class for determining the optimal number of clusters.
 - **style.py**: Contains styles for the Streamlit app.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## Author
 
 Developed by [Hassan EL QADI](https://www.linkedin.com/in/el-qadi/).
