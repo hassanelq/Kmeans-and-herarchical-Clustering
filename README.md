@@ -1,1 +1,1 @@
-Kmeans and herarchical Classification visualisation
+Kmeans and herarchical Clustering
